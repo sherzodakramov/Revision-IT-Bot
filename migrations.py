@@ -1,30 +1,45 @@
 import psycopg2
-from main import host, password, user, db_name
+from decouple import config
 
+connection = psycopg2.connect(user=config('DB_USER'),
+                                password=config('DB_PASSWORD'),
+                                host=config('DB_HOST'),
+                                port=config('DB_PORT'),
+                                database=config('DB_NAME'))
+cursor = connection.cursor()
+# connection.commit()
+# cursor.execute("DROP TABLE users;")
+# cursor.execute("DROP TABLE orders;")
+# cursor.execute("DROP TABLE feedbacks;")
+# connection.commit()
+connection.commit();
+cursor.execute("""create table users (
+    id             serial not null primary key,
+    chat_id        bigint                              null,
+    phone          varchar(255)                        null,
+    first_name     varchar(255)                        null,
+    last_name      varchar(255)                        null,
+    username       varchar(255)                        null,
+    current_order_id int                               null,
+    current_action varchar(255)                        null,
+    created_at     timestamp default CURRENT_TIMESTAMP not null
+);""")
+connection.commit()
+cursor.execute("""create table orders (
+    id             serial not null primary key,
+    chat_id        bigint                              null,
+    service        varchar(255)                        null,
+    name           varchar(255)                        null,
+    sphere         varchar(255)                        null,
+    created_at     timestamp default CURRENT_TIMESTAMP not null
+);""")
+connection.commit()
+cursor.execute("""create table feedbacks (
+    id             serial not null primary key,
+    chat_id        bigint                              null,
+    answered       int                                 null,
+    created_at     timestamp default CURRENT_TIMESTAMP not null
+);""")
+connection.commit()
 
-try:
-    # connect to exist database
-    connection = psycopg2.connect(
-        host=host,
-        user=user,
-        password=password,
-        database=db_name
-        )
-    
-    # the cursor for performing database operations 
-    # cursor = connection.cursor()
-
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT version();"
-            )
-        print(f"Server version: {cursor.fetchone()}")
-
-except Exception as _ex:
-    print("[INFO] Error while working with PostgreSQL", _ex)
-
-finally:
-    if connection: 
-        # cursor.close()
-        connection.close()
-        print("[INFO] PostreSQL connection closed.")
+connection.close()
